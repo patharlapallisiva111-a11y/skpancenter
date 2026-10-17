@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SK PAN CENTER</title>
+<style>
+:root{--navy:#12315a;--blue:#1769aa;--bg:#f3f6fb;--card:#fff;--line:#d9e2ef;--text:#172033;--muted:#64748b;--red:#b42318;--green:#087443}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Noto Sans Telugu",Arial,sans-serif}
+header{background:linear-gradient(120deg,#102b50,#1769aa);color:#fff;padding:20px max(16px,calc((100% - 1100px)/2));}
+header h1{margin:0;font-size:clamp(23px,4vw,32px)}header p{margin:5px 0 0;color:#e1edff}
+nav{display:flex;gap:8px;flex-wrap:wrap;background:#fff;padding:10px max(12px,calc((100% - 1100px)/2));border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3}
+button,.btn{border:0;border-radius:9px;padding:10px 14px;background:var(--blue);color:#fff;cursor:pointer;font-weight:650;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+button.secondary,.btn.secondary{background:#e8eef7;color:#183456}button.danger{background:#b42318}button.green{background:#087443}button:disabled{opacity:.5;cursor:not-allowed}
+main{max-width:1100px;margin:18px auto;padding:0 12px 40px}.page{display:none}.page.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 3px 14px #12315a0b}
+h2{font-size:21px;margin:0 0 14px}h3{margin:0 0 10px;font-size:17px}.muted{color:var(--muted)}.notice{padding:12px;border-radius:10px;background:#fff8e6;border:1px solid #f3d38a;color:#684d08;margin:10px 0}
+.success{color:var(--green)}.error{color:var(--red)}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}label{font-weight:650;font-size:14px}input,select,textarea{font:inherit;padding:10px 11px;border:1px solid #cbd5e1;border-radius:8px;width:100%;background:#fff;color:var(--text)}input:focus,textarea:focus,select:focus{outline:2px solid #9ac9f5;border-color:#1769aa}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{padding:15px;background:#f4f8ff;border-radius:10px}.stat strong{display:block;font-size:24px;color:var(--navy)}
+.tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:850px}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#edf3fb;color:#173456;position:sticky;top:0}td a{color:#087443;font-weight:700}.smallbtn{padding:6px 9px;font-size:13px;margin:2px}.pill{display:inline-block;padding:3px 8px;border-radius:20px;background:#e8eef7;font-size:12px}.hidden{display:none!important}
+.cropgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.cropbox{border:1px solid var(--line);border-radius:12px;padding:13px}.cropbox canvas{touch-action:none;cursor:grab;display:block;width:auto;height:auto;max-width:100%;max-height:300px;margin:10px auto 0;background:#f1f5f9;border:1px dashed #b8c5d6;border-radius:8px}.cropbox input[type=range]{padding:0}.cropbox .field{margin-top:9px}
+.thumb{height:56px;width:auto;max-width:90px;object-fit:cover;border:1px solid var(--line);border-radius:6px;background:#fff;display:block}.thumbbtn{padding:0;background:none;border:0;border-radius:6px;margin:2px}.prev{height:110px;max-width:100%;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:6px;align-self:flex-start}.rmrow{display:flex;gap:6px;align-items:center;font-weight:400;font-size:13px}
+footer{max-width:1100px;margin:auto;padding:0 14px 30px;color:var(--muted);font-size:13px}
+@media(max-width:650px){.grid,.cropgrid{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.card{padding:14px}nav button{flex:1}header{padding:18px 14px}}
+</style>
+</head>
+<body>
+<header><h1>SK PAN CENTER</h1><p>Customer Details • PAN Data • Photo / Signature Crop Tool</p></header>
+<nav>
+<button data-page="home">Home / Entry Data</button>
+<button data-page="data" class="secondary">PAN Data</button>
+<button data-page="crop" class="secondary">Photo / Signature Crop Tool</button>
+<button data-page="backup" class="secondary">Backup / Settings</button>
+</nav>
+<main>
+<noscript><div class="notice" style="background:#fdecea;border-color:#f5b5ae;color:#8a1c12">⚠ JavaScript is OFF in this browser. Open this file in Chrome with JavaScript enabled.</div></noscript>
+<div class="notice" id="okBanner">⏳ App is loading… If this message stays and buttons do not work, this viewer is blocking the app. Open the file directly in Chrome browser (from Downloads).</div>
+<div class="notice hidden" id="storageWarn" style="background:#fdecea;border-color:#f5b5ae;color:#8a1c12"></div>
+<section id="home" class="page active">
+<div class="card"><h2 id="formTitle">Enter Customer Details</h2>
+<div class="notice">In this version, data is saved only in this browser. If you change your phone/computer or clear browser data, the data may be lost. Take a Backup regularly.</div>
+<form id="customerForm" novalidate autocomplete="off">
+<input type="hidden" id="recordId">
+<div class="grid">
+<div class="field"><label for="name">Name</label><input id="name" maxlength="120" autocomplete="name"></div>
+<div class="field"><label for="phone">Phone No. (Optional)</label><input id="phone" inputmode="tel" maxlength="20" placeholder="e.g. 9876543210"></div>
+<div class="field"><label for="email">Gmail / Email (Optional)</label><input id="email" type="email" maxlength="160" autocomplete="email"></div>
+<div class="field"><label for="aadhaar">Aadhaar No. (Optional)</label><input id="aadhaar" inputmode="numeric" maxlength="14" placeholder="Enter only when required"></div>
+<div class="field"><label for="pan">PAN No. (Optional)</label><input id="pan" maxlength="10" autocapitalize="characters" placeholder="e.g. ABCDE1234F"></div>
+<div class="field"><label for="provider">Application Type</label><select id="provider"><option value="">Select</option><option>UTIITSL</option><option>Protean (NSDL)</option><option>Other</option></select></div>
+<div class="field"><label for="status">Status</label><select id="status"><option>Pending</option><option>Applied</option><option>Completed</option><option>Correction Required</option></select></div>
+<div class="field"><label for="applicationDate">Application Date</label><input id="applicationDate" type="date"></div>
+<div class="field full"><label for="notes">Notes (Optional)</label><textarea id="notes" rows="2" maxlength="1000" placeholder="Any useful notes"></textarea></div>
+<div class="field"><label for="custPhoto">Passport Size Photo (Optional)</label><input id="custPhoto" type="file" accept="image/*"><span id="existingPhoto" class="muted"></span><img id="custPhotoPrev" class="prev hidden" alt="Photo preview"><input type="checkbox" id="rmPhoto" class="hidden"><button type="button" class="smallbtn danger hidden" id="rmPhotoBtn" style="align-self:flex-start">✕ Remove photo</button></div>
+<div class="field"><label for="custSign">Signature Photo (Optional)</label><input id="custSign" type="file" accept="image/*"><span id="existingSign" class="muted"></span><img id="custSignPrev" class="prev hidden" alt="Signature preview"><input type="checkbox" id="rmSign" class="hidden"><button type="button" class="smallbtn danger hidden" id="rmSignBtn" style="align-self:flex-start">✕ Remove signature</button></div>
+<div class="field full"><label for="pdf">Application PDF (Optional)</label><input id="pdf" type="file" accept="application/pdf,.pdf"><span id="existingPdf" class="muted"></span><input type="checkbox" id="rmPdf" class="hidden"><button type="button" class="smallbtn danger hidden" id="rmPdfBtn" style="align-self:flex-start">✕ Remove PDF</button><small class="muted">The PDF file is saved in this browser. Large files need free storage space on the device.</small></div>
+</div>
+<div class="actions"><button type="submit" id="saveBtn">Save Customer</button><button type="button" id="resetBtn" class="secondary">Clear Form</button></div>
+<p id="formMsg" aria-live="polite"></p>
+</form></div>
+<div class="card"><h2>Quick Summary</h2><div class="stats"><div class="stat">Total Records<strong id="totalStat">0</strong></div><div class="stat">Pending<strong id="pendingStat">0</strong></div><div class="stat">Completed<strong id="completedStat">0</strong></div></div></div>
+</section>
+<section id="data" class="page">
+<div class="card"><h2>PAN Data</h2><p class="muted">Only records saved on the Home page appear here.</p>
+<div class="grid"><div class="field"><label for="search">Search</label><input id="search" placeholder="Search by name / phone / PAN / status"></div><div class="field"><label for="filterStatus">Status Filter</label><select id="filterStatus"><option value="">All Statuses</option><option>Pending</option><option>Applied</option><option>Completed</option><option>Correction Required</option></select></div></div>
+<div class="actions"><button id="exportCsv" class="secondary" type="button">Export CSV</button><button id="addNew" type="button">+ Add Customer</button></div><p id="dataCount" class="muted"></p>
+<div class="tablewrap"><table><thead><tr><th>S.No.</th><th>Name</th><th>Phone / WhatsApp</th><th>Email</th><th>Aadhaar</th><th>PAN</th><th>Application</th><th>Status</th><th>Photo / Sign</th><th>PDF</th><th>Details</th></tr></thead><tbody id="recordsBody"></tbody></table></div>
+</div></section>
+<section id="crop" class="page">
+<div class="card"><h2>Photo / Signature Crop Tool</h2>
+<div class="actions" style="margin:0 0 12px"><button type="button" data-prov="nsdl">NSDL (Protean)</button><button type="button" data-prov="uti" class="secondary">UTIITSL (UTI)</button></div>
+<div class="notice" id="specNotice"></div>
+<div class="cropgrid">
+<div class="cropbox"><h3>Photo Crop</h3><p class="muted" id="photoSpec"></p><div class="field"><label for="photoFile">Choose Photo</label><input id="photoFile" type="file" accept="image/*"></div><p id="photoInfo" class="muted">No image chosen yet.</p><canvas id="photoCanvas" width="197" height="276"></canvas><div class="field"><label for="photoZoom">Zoom (below 1 = fit whole image with white margin)</label><input id="photoZoom" type="range" min="0.2" max="4" step=".05" value="1"></div><div class="field"><label for="photoX">Horizontal position</label><input id="photoX" type="range" min="0" max="100" value="50"></div><div class="field"><label for="photoY">Vertical position</label><input id="photoY" type="range" min="0" max="100" value="50"></div><div class="field"><label for="photoKB">Target max size (KB)</label><input id="photoKB" type="number" min="2" max="20" value="20"></div><div class="field"><label for="photoDPI">DPI</label><input id="photoDPI" type="number" min="72" max="1200" value="300"></div><button id="downloadPhoto" type="button" class="green">Download Photo JPG</button><p id="photoMsg" class="muted"></p><div id="photoOut"></div></div>
+<div class="cropbox"><h3>Signature Crop</h3><p class="muted" id="signSpec"></p><div class="field"><label for="signFile">Choose Signature</label><input id="signFile" type="file" accept="image/*"></div><p id="signInfo" class="muted">No image chosen yet.</p><canvas id="signCanvas" width="354" height="157"></canvas><div class="field"><label for="signZoom">Zoom (below 1 = fit whole image with white margin)</label><input id="signZoom" type="range" min="0.2" max="4" step=".05" value="1"></div><div class="field"><label for="signX">Horizontal position</label><input id="signX" type="range" min="0" max="100" value="50"></div><div class="field"><label for="signY">Vertical position</label><input id="signY" type="range" min="0" max="100" value="50"></div><div class="field"><label for="signKB">Target max size (KB)</label><input id="signKB" type="number" min="2" max="10" value="10"></div><div class="field"><label for="signDPI">DPI</label><input id="signDPI" type="number" min="72" max="1200" value="600"></div><div class="field"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="signBW" style="width:auto"> Black &amp; white signature</label></div><button id="downloadSign" type="button" class="green">Download Signature JPG</button><p id="signMsg" class="muted"></p><div id="signOut"></div></div>
+</div>
+<p class="muted" id="specSource"></p>
+<p class="muted">To crop, choose a file, then drag the preview to move it and use the Zoom slider (or mouse wheel) to resize. Use a plain white background for the photo and a black pen on plain white paper for the signature. Always compare the output with the current rules on the portal before uploading.</p>
+</div></section>
+<section id="backup" class="page">
+<div class="card"><h2>Google Drive Auto-Save</h2>
+<div class="notice">When ON, every customer you save is also sent to your Google Drive, in the folder <strong>SK PAN CENTER → customer name</strong> (details, photo, signature, PDF). Needs internet and a one-time setup (Apps Script). Works when this file is opened in Chrome (not in the online link).</div>
+<div class="grid"><div class="field full"><label for="driveUrl">Web App URL (ends with /exec)</label><input id="driveUrl" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off"></div>
+<div class="field"><label for="driveKey">Password (same as SECRET in the script)</label><input id="driveKey" autocomplete="off"></div>
+<div class="field"><label style="display:flex;gap:8px;align-items:center;margin-top:26px"><input type="checkbox" id="driveOn" style="width:auto"> Auto-save to Google Drive</label></div></div>
+<div class="actions"><button type="button" id="driveSave">Save Drive Settings</button><button type="button" id="driveTest" class="secondary">Test Connection</button><button type="button" id="driveAll" class="secondary">Send all existing customers to Drive</button></div>
+<p id="driveMsg" class="muted" aria-live="polite"></p></div>
+<div class="card"><h2>Backup / Restore</h2><div class="notice">Your records may contain personal details. Keep the backup file safe and do not share it with others.</div>
+<p>Taking a backup downloads customer details, attached PDF files, photos and signatures as a JSON file. Restoring adds the records to the current records; a record with the same ID is replaced.</p>
+<div class="actions"><button id="backupBtn">Download Full Backup</button><label class="btn secondary" for="restoreFile">Restore Backup JSON</label><input id="restoreFile" type="file" accept="application/json,.json" class="hidden"></div><p id="backupMsg" aria-live="polite"></p>
+<hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+<h3>Official PAN Portals</h3><p><a href="https://www.pan.utiitsl.com/" target="_blank" rel="noopener">UTIITSL official website</a></p><p><a href="https://tinpan.proteantech.in/" target="_blank" rel="noopener">Protean / NSDL PAN website</a></p>
+</div></section>
+</main>
+<footer>SK PAN CENTER • Single-file browser app. Keep regular backups. Avoid storing Aadhaar or other sensitive data unless genuinely necessary.</footer>
+<script>
+function setBanner(t,ok){const b=document.getElementById('okBanner');if(!b)return;b.textContent=t;b.style.cssText=ok?'background:#e7f6ee;border-color:#9bd5b4;color:#0a5c36':'background:#fdecea;border-color:#f5b5ae;color:#8a1c12';}
+window.addEventListener('error',e=>setBanner('⚠ Error: '+(e.message||'unknown error'),false));
+window.addEventListener('unhandledrejection',e=>setBanner('⚠ Error: '+((e.reason&&e.reason.message)||e.reason||'unknown'),false));
+function tmo(p,ms,msg){return Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error(msg||'Browser storage is not responding. Open this file directly in Chrome (not inside WhatsApp/Gmail, not in private mode).')),ms))]);}
+const LS_KEY='skPanCenterTextBackup';
+function persistMem(){try{localStorage.setItem(LS_KEY,JSON.stringify([...memStore.values()].map(r=>({...r,pdfBlob:null,pdfName:'',photoBlob:null,photoName:'',signBlob:null,signName:''}))));}catch(e){}}
+function loadMem(){try{const a=JSON.parse(localStorage.getItem(LS_KEY)||'[]');a.forEach(r=>memStore.set(r.id,r));}catch(e){}}
+const DB_NAME='skPanCenterDB', STORE='customers'; let db,useMem=false;const memStore=new Map();
+const $=id=>document.getElementById(id);
+function newId(){if(window.crypto&&crypto.randomUUID)return crypto.randomUUID();return 'id-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);}
+function todayLocal(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);}
+function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{const d=req.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE,{keyPath:'id'});};req.onsuccess=()=>{db=req.result;resolve(db)};req.onerror=()=>reject(req.error);});}
+function allRecords(){if(useMem)return Promise.resolve([...memStore.values()].sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||'')));if(!db)return Promise.reject(new Error('Browser storage is not available. Open this file directly in Chrome (not inside WhatsApp/Gmail and not in private mode).'));return new Promise((resolve,reject)=>{const r=db.transaction(STORE,'readonly').objectStore(STORE).getAll();r.onsuccess=()=>resolve(r.result.sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||'')));r.onerror=()=>reject(r.error);});}
+function putRecord(record){if(useMem){memStore.set(record.id,record);persistMem();return Promise.resolve();}if(!db)return Promise.reject(new Error('Browser storage is not available. Open this file directly in Chrome (not inside WhatsApp/Gmail and not in private mode).'));return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(record);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);});}
+function deleteRecord(id){if(useMem){memStore.delete(id);persistMem();return Promise.resolve();}return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(id);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);});}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function waLink(phone){let digits=String(phone||'').replace(/\D/g,'').replace(/^0+/,'');if(digits.length===10)digits='91'+digits;return digits.length>=11&&digits.length<=15?'https://wa.me/'+digits:null;}
+function blobToDataURL(blob){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(blob);});}
+function dataURLToBlob(data){const [meta,b64]=data.split(',');const mime=(meta.match(/:(.*?);/)||[])[1]||'application/octet-stream';const bin=atob(b64),arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:mime});}
+function showPage(id){document.querySelectorAll('nav [data-page]').forEach(b=>b.classList.toggle('secondary',b.dataset.page!==id));document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));window.scrollTo({top:0,behavior:'smooth'});if(id==='data')renderRecords();if(id==='home')updateStats();}
+document.querySelectorAll('nav [data-page]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
+function shrinkImage(file,max=1600){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=()=>rej(new Error('Could not read the image file.'));fr.onload=()=>{const im=new Image();im.onerror=()=>rej(new Error('This image could not be opened. Please choose a JPG or PNG image.'));im.onload=()=>{const k=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));const c=document.createElement('canvas');c.width=Math.max(1,Math.round(im.naturalWidth*k));c.height=Math.max(1,Math.round(im.naturalHeight*k));const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);c.toBlob(b=>b?res(b):rej(new Error('Could not process the image.')),'image/jpeg',.92);};im.src=fr.result;};fr.readAsDataURL(file);});}
+const thumbUrls=[],pending={Photo:null,Sign:null,PhotoName:'',SignName:''},prevTok={},loadTok={},loadJobs={};
+async function setPrev(prevId,blob){const el=$(prevId),cap=prevId.includes('Photo')?'Photo':'Sign',btn=$('rm'+cap+'Btn'),tok=prevTok[prevId]=(prevTok[prevId]||0)+1;
+if(blob){let url='';try{url=await blobToDataURL(blob);}catch(e){return;}if(prevTok[prevId]!==tok)return;el.src=url;el.classList.remove('hidden');btn.classList.remove('hidden');}
+else{el.removeAttribute('src');el.classList.add('hidden');btn.classList.add('hidden');}}
+function mediaUi(prefix,rec){const cap=prefix==='photo'?'Photo':'Sign',has=rec&&rec[prefix+'Blob'];loadTok[cap]=(loadTok[cap]||0)+1;pending[cap]=null;pending[cap+'Name']='';$('existing'+cap).className='muted';$('existing'+cap).textContent=has?'Saved '+(prefix==='photo'?'photo':'signature')+': '+(rec[prefix+'Name']||'image'):'';setPrev('cust'+cap+'Prev',has?rec[prefix+'Blob']:null);}
+['Photo','Sign'].forEach(cap=>{const inp=$('cust'+cap),inf=$('existing'+cap);
+inp.addEventListener('change',()=>{loadJobs[cap]=(async()=>{const f=inp.files&&inp.files[0];if(!f)return;inf.className='muted';inf.textContent='Loading image...';
+const my=loadTok[cap]=(loadTok[cap]||0)+1;try{const b=await shrinkImage(f);if(loadTok[cap]!==my)return;pending[cap]=b;pending[cap+'Name']=f.name;$('rm'+cap).checked=false;await setPrev('cust'+cap+'Prev',b);inf.className='success';inf.textContent='✔ Selected: '+f.name;}
+catch(err){if(loadTok[cap]!==my)return;pending[cap]=null;pending[cap+'Name']='';setPrev('cust'+cap+'Prev',null);inf.className='error';inf.textContent=(err&&err.message)||'This image could not be opened. Please choose a JPG or PNG image.';}
+try{inp.value='';}catch(e){}})();});
+$('rm'+cap+'Btn').addEventListener('click',()=>{loadTok[cap]=(loadTok[cap]||0)+1;try{inp.value='';}catch(e){}pending[cap]=null;pending[cap+'Name']='';$('rm'+cap).checked=true;setPrev('cust'+cap+'Prev',null);inf.className='muted';inf.textContent=$('recordId').value?'Removed. Press Update Customer to apply.':'Image removed.';});});
+let pendingPdf=null,pdfTok=0,pdfJob=null;
+function pdfUi(rec){pendingPdf=null;pdfTok++;$('existingPdf').className='muted';$('existingPdf').textContent=rec&&rec.pdfBlob?'Saved PDF: '+(rec.pdfName||'file.pdf'):'';$('rmPdfBtn').classList.toggle('hidden',!(rec&&rec.pdfBlob));}
+$('pdf').addEventListener('change',()=>{pdfJob=(async()=>{const f=$('pdf').files&&$('pdf').files[0];if(!f)return;const my=++pdfTok,inf=$('existingPdf');inf.className='muted';inf.textContent='Loading PDF...';
+try{if(f.type!=='application/pdf'&&!f.name.toLowerCase().endsWith('.pdf'))throw new Error('Please choose a PDF file only.');const buf=await readBuf(f);if(my!==pdfTok)return;pendingPdf=new Blob([buf],{type:'application/pdf'});pendingPdf.fileName=f.name;$('rmPdf').checked=false;inf.className='success';inf.textContent='✔ Selected: '+f.name+' ('+Math.max(1,Math.round(f.size/1024))+' KB)';$('rmPdfBtn').classList.remove('hidden');}
+catch(err){if(my!==pdfTok)return;pendingPdf=null;inf.className='error';inf.textContent=(err&&err.message)||'Could not read this PDF. Please choose it again.';$('rmPdfBtn').classList.add('hidden');}
+try{$('pdf').value='';}catch(e){}})();});
+$('rmPdfBtn').addEventListener('click',()=>{pdfTok++;try{$('pdf').value='';}catch(e){}pendingPdf=null;$('rmPdf').checked=true;$('rmPdfBtn').classList.add('hidden');$('existingPdf').className='muted';$('existingPdf').textContent=$('recordId').value?'PDF removed. Press Update Customer to apply.':'PDF removed.';});
+function resetForm(){ $('customerForm').reset();$('recordId').value='';pdfUi(null);mediaUi('photo',null);mediaUi('sign',null);$('formTitle').textContent='Enter Customer Details';$('saveBtn').textContent='Save Customer';$('formMsg').textContent='';$('applicationDate').value=todayLocal();}
+$('resetBtn').addEventListener('click',resetForm);$('addNew').addEventListener('click',()=>{resetForm();showPage('home')});
+$('customerForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('saveBtn');btn.disabled=true;const msg=$('formMsg');msg.className='muted';msg.textContent='Saving...';try{
+let slow=false,slowT;await Promise.race([Promise.all([loadJobs.Photo,loadJobs.Sign,pdfJob].filter(Boolean)).catch(()=>{}),new Promise(r=>{slowT=setTimeout(()=>{slow=true;r();},4000);})]);clearTimeout(slowT);const id=$('recordId').value||newId();const old=(await tmo(allRecords(),8000)).find(r=>r.id===id);let pdfBlob=old?.pdfBlob||null,pdfName=old?.pdfName||'';
+if($('rmPdf').checked){pdfBlob=null;pdfName='';}
+if(pendingPdf){pdfBlob=pendingPdf;pdfName=pendingPdf.fileName||'application.pdf';}
+let photoBlob=old?.photoBlob||null,photoName=old?.photoName||'',signBlob=old?.signBlob||null,signName=old?.signName||'';
+if($('rmPhoto').checked){photoBlob=null;photoName='';}if($('rmSign').checked){signBlob=null;signName='';}
+if(pending.Photo){photoBlob=pending.Photo;photoName=pending.PhotoName;}
+if(pending.Sign){signBlob=pending.Sign;signName=pending.SignName;}
+const rec={id,name:$('name').value.trim(),phone:$('phone').value.trim(),email:$('email').value.trim(),aadhaar:$('aadhaar').value.trim(),pan:$('pan').value.trim().toUpperCase(),provider:$('provider').value,status:$('status').value,applicationDate:$('applicationDate').value,notes:$('notes').value.trim(),pdfBlob,pdfName,photoBlob,photoName,signBlob,signName,createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
+if(![rec.name,rec.phone,rec.email,rec.aadhaar,rec.pan,rec.provider,rec.notes].some(v=>v)&&!rec.pdfBlob&&!rec.photoBlob&&!rec.signBlob){const e=new Error('Please enter at least one detail before saving.');e.focusId='name';throw e;}
+const warn=[];if(rec.phone&&rec.phone.replace(/\D/g,'').length<10)warn.push('Phone number has fewer than 10 digits.');if(rec.email&&!/^\S+@\S+\.\S+$/.test(rec.email))warn.push('Email looks wrong.');if(rec.pan&&!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(rec.pan))warn.push('PAN format looks wrong (expected ABCDE1234F).');if(rec.aadhaar&&rec.aadhaar.replace(/\D/g,'').length!==12)warn.push('Aadhaar should be 12 digits.');
+let fileFail='';try{await tmo(putRecord(rec),10000);}catch(e1){if(rec.pdfBlob||rec.photoBlob||rec.signBlob){const r2={...rec,pdfBlob:old?.pdfBlob||null,pdfName:old?.pdfName||'',photoBlob:old?.photoBlob||null,photoName:old?.photoName||'',signBlob:old?.signBlob||null,signName:old?.signName||''};await tmo(putRecord(r2),10000,'Browser storage is not responding. Open this file directly in Chrome (not inside WhatsApp/Gmail, not in private mode).');fileFail=(e1&&e1.message)||'storage error';}else throw e1;}resetForm();msg.className='success';msg.textContent=(fileFail?'Details saved. BUT photo/signature/PDF could NOT be saved ('+fileFail+'). Try smaller files or open in Chrome. ':'Customer saved successfully.')+(slow&&!fileFail?' (A photo/PDF was still loading and was skipped. Edit the customer to add it again.)':'')+(warn.length?' Note: '+warn.join(' '):'')+(useMem?' ⚠ Storage is limited here: only text details are kept; photo/signature/PDF are NOT kept. Open the file in Chrome to keep everything.':'');msg.scrollIntoView({block:'center',behavior:'smooth'});toast('✔ Saved successfully');driveAfterSave(rec,msg);await renderRecords();await updateStats();
+}catch(err){msg.className='error';msg.textContent=err.message||'Could not save. Please try again.';msg.scrollIntoView({block:'center',behavior:'smooth'});if(err&&err.focusId)$(err.focusId).focus();}finally{btn.disabled=false;}});
+async function updateStats(){try{const r=await allRecords();$('totalStat').textContent=r.length;$('pendingStat').textContent=r.filter(x=>x.status==='Pending').length;$('completedStat').textContent=r.filter(x=>x.status==='Completed').length;}catch(e){}}
+$('search').addEventListener('input',renderRecords);$('filterStatus').addEventListener('change',renderRecords);
+async function renderRecords(){const body=$('recordsBody');if(!body)return;const q=($('search').value||'').toLowerCase().trim(),f=$('filterStatus').value;let records=await allRecords();records=records.filter(r=>(!f||r.status===f)&&(!q||[r.name,r.phone,r.email,r.aadhaar,r.pan,r.status,r.provider,r.notes].some(v=>String(v||'').toLowerCase().includes(q))));$('dataCount').textContent=`${records.length} records shown`;thumbUrls.splice(0).forEach(u=>URL.revokeObjectURL(u));body.innerHTML='';
+if(!records.length){body.innerHTML='<tr><td colspan="11" class="muted">No records yet, or no data matches your search.</td></tr>';return;}
+records.forEach((r,i)=>{const tr=document.createElement('tr');const wa=waLink(r.phone);tr.innerHTML=`<td>${i+1}</td><td><strong>${esc(r.name||'(No name)')}</strong><br><span class="muted">${esc(r.applicationDate||'')}</span></td><td>${wa?`<a href="${wa}" target="_blank" rel="noopener">${esc(r.phone)} ↗ WhatsApp</a>`:(r.phone?esc(r.phone)+'<br><small class="muted">Check the number and country code</small>':'—')}</td><td>${esc(r.email)}</td><td>${esc(r.aadhaar)}</td><td>${esc(r.pan)}</td><td>${esc(r.provider)}</td><td><span class="pill">${esc(r.status)}</span></td><td>${['photo','sign'].map(k=>{if(!r[k+'Blob'])return '';const u=URL.createObjectURL(r[k+'Blob']);thumbUrls.push(u);return `<button type="button" class="thumbbtn" data-action="${k}" data-id="${esc(r.id)}" title="Open ${k==='photo'?'photo':'signature'}"><img class="thumb" src="${u}" alt="${k}"></button>`;}).join('')||'—'}${['photo','sign'].map(k=>r[k+'Blob']?`<br><button type="button" class="smallbtn green" data-action="dl-${k}" data-id="${esc(r.id)}">⬇ ${k==='photo'?'Photo':'Sign'}</button>`:'').join('')}</td><td>${r.pdfBlob?`<button class="smallbtn secondary" data-action="pdf" data-id="${esc(r.id)}">Open PDF</button> <button class="smallbtn green" data-action="dl-pdf" data-id="${esc(r.id)}">⬇ PDF</button><br><small>${esc(r.pdfName)}</small>`:'—'}</td><td><button class="smallbtn secondary" data-action="view" data-id="${esc(r.id)}">View</button><button class="smallbtn" data-action="edit" data-id="${esc(r.id)}">Edit</button><button class="smallbtn danger" data-action="delete" data-id="${esc(r.id)}">Delete</button></td>`;body.appendChild(tr);});
+}
+function dlg(title,html,btns){const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;display:flex;align-items:center;justify-content:center;padding:14px';const c=document.createElement('div');c.style.cssText='background:#fff;color:#172033;border-radius:14px;padding:18px;max-width:460px;width:100%;max-height:85vh;overflow:auto';c.innerHTML='<h3>'+esc(title)+'</h3><div>'+html+'</div>';const row=document.createElement('div');row.className='actions';btns.forEach(x=>{const bt=document.createElement('button');bt.type='button';bt.textContent=x[0];if(x[1])bt.className=x[1];bt.onclick=async()=>{o.remove();if(x[2]){try{await x[2]();}catch(e){}}};row.appendChild(bt);});c.appendChild(row);o.appendChild(c);o.addEventListener('click',e=>{if(e.target===o)o.remove();});document.body.appendChild(o);}
+function toast(t){const d=document.createElement('div');d.textContent=t;d.style.cssText='position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#087443;color:#fff;padding:12px 20px;border-radius:10px;font-weight:700;z-index:100;box-shadow:0 4px 16px #0004';document.body.appendChild(d);setTimeout(()=>d.remove(),2500);}
+window.addEventListener('pageshow',()=>{setTimeout(()=>{try{if(!$('recordId').value)resetForm();}catch(e){}},300);});
+function driveCfg(){try{return JSON.parse(localStorage.getItem('skPanDriveCfg')||'{}');}catch(e){return {};}}
+async function blobB64(b){if(!b)return null;const u=await blobToDataURL(b);return {mime:b.type||'application/octet-stream',b64:u.split(',')[1]};}
+async function driveSend(rec){const c=driveCfg();if(!c.url)return {ok:false,error:'Drive URL not set'};
+const body=JSON.stringify({key:c.key||'',id:rec.id,name:rec.name,phone:rec.phone,email:rec.email,aadhaar:rec.aadhaar,pan:rec.pan,provider:rec.provider,status:rec.status,applicationDate:rec.applicationDate,notes:rec.notes,pdfName:rec.pdfName,photo:await blobB64(rec.photoBlob),sign:await blobB64(rec.signBlob),pdf:await blobB64(rec.pdfBlob)});
+let got=false;try{const r=await fetch(c.url,{method:'POST',body});got=true;const t=await r.text();let j;try{j=JSON.parse(t);}catch(e){return {ok:false,error:'Script did not reply correctly. In Deploy settings choose Who has access = Anyone.'};}return j.ok?{ok:true,confirmed:true,folder:j.folder}:{ok:false,error:j.error||'unknown error'};}
+catch(e){if(got)return {ok:false,error:'Unexpected reply from script.'};try{await fetch(c.url,{method:'POST',mode:'no-cors',body});return {ok:true,confirmed:false};}catch(e2){return {ok:false,error:'No internet or wrong URL.'};}}}
+function driveAfterSave(rec,msg){const c=driveCfg();if(!c.on||!c.url)return;const tag=' ☁ Sending to Drive...';msg.textContent+=tag;driveSend(rec).then(r=>{const base=msg.textContent.replace(tag,'');msg.textContent=base+(r.ok?(r.confirmed?' ☁ Saved to Drive ('+r.folder+').':' ☁ Sent to Drive (could not confirm, please check Drive).'):' ☁ Drive failed: '+r.error+' (data is safe in this app).');});}
+(function(){const c=driveCfg();$('driveUrl').value=c.url||'';$('driveKey').value=c.key||'';$('driveOn').checked=!!c.on;})();
+$('driveSave').addEventListener('click',()=>{const c={url:$('driveUrl').value.trim(),key:$('driveKey').value.trim(),on:$('driveOn').checked},m=$('driveMsg');try{localStorage.setItem('skPanDriveCfg',JSON.stringify(c));m.className='success';m.textContent='Settings saved.'+(c.on?' New customers will also be sent to Google Drive.':' Drive auto-save is OFF.');}catch(e){m.className='error';m.textContent='Could not save settings (browser storage is blocked here).';}});
+$('driveTest').addEventListener('click',async()=>{const m=$('driveMsg'),url=$('driveUrl').value.trim();if(!url){m.className='error';m.textContent='Paste the Web App URL first.';return;}m.className='muted';m.textContent='Testing...';try{const r=await fetch(url,{method:'POST',body:JSON.stringify({key:$('driveKey').value.trim(),test:true})});const t=await r.text();let j;try{j=JSON.parse(t);}catch(e){m.className='error';m.textContent='Script did not reply correctly. In Deploy settings choose Who has access = Anyone.';return;}if(j.ok){m.className='success';m.textContent='✔ Connected to your Google Drive script.';}else{m.className='error';m.textContent='Script said: '+(j.error||'error');}}catch(e){m.className='error';m.textContent='Could not confirm the connection. Check internet and that the URL ends with /exec. You can also save a test customer and check your Drive.';}});
+$('driveAll').addEventListener('click',async()=>{const m=$('driveMsg');if(!driveCfg().url){m.className='error';m.textContent='Save the Drive settings first.';return;}const recs=await allRecords();if(!recs.length){m.className='muted';m.textContent='No customers to send.';return;}let ok=0,bad=0,last='';for(let i=0;i<recs.length;i++){m.className='muted';m.textContent='Sending '+(i+1)+' / '+recs.length+'...';const r=await driveSend(recs[i]);if(r.ok)ok++;else{bad++;last=r.error;}}m.className=bad?'error':'success';m.textContent='Done. Sent: '+ok+(bad?', failed: '+bad+' ('+last+')':'')+'.';});
+$('recordsBody').addEventListener('click',async e=>{const b=e.target.closest('button[data-action]');if(!b)return;const r=(await allRecords()).find(x=>x.id===b.dataset.id);if(!r)return;
+if(b.dataset.action==='edit'){showPage('home');$('recordId').value=r.id;$('pdf').value='';$('custPhoto').value='';$('custSign').value='';$('rmPhoto').checked=false;$('rmSign').checked=false;$('rmPdf').checked=false;mediaUi('photo',r);mediaUi('sign',r);for(const k of ['name','phone','email','aadhaar','pan','provider','status','applicationDate','notes'])$(k).value=r[k]||'';pdfUi(r);$('formTitle').textContent='Edit Customer Details';$('saveBtn').textContent='Update Customer';window.scrollTo({top:0,behavior:'smooth'});}
+if(b.dataset.action==='view'){const rows=[['Name',r.name],['Phone',r.phone],['Email',r.email],['Aadhaar',r.aadhaar],['PAN',r.pan],['Application',r.provider],['Status',r.status],['Date',r.applicationDate],['Notes',r.notes],['PDF',r.pdfName],['Photo',r.photoName],['Signature',r.signName]];dlg('Customer Details','<table style="min-width:0;width:100%">'+rows.map(x=>'<tr><td><strong>'+esc(x[0])+'</strong></td><td style="word-break:break-word">'+esc(x[1]||'-')+'</td></tr>').join('')+'</table>',[['Close','secondary']]);}
+if(b.dataset.action==='delete'){dlg('Delete record?','<p>Delete <strong>'+esc(r.name||r.phone||r.pan||'this record')+'</strong> and its attached files? This cannot be undone.</p>',[['Cancel','secondary'],['Delete','danger',async()=>{await deleteRecord(r.id);await renderRecords();await updateStats();}]]);}
+if(b.dataset.action==='dl-photo'||b.dataset.action==='dl-sign'){const k=b.dataset.action.slice(3),bl=r[k+'Blob'];if(bl)downloadBlob(bl,(r.name||r.phone||'customer')+'-'+k+'.jpg');}
+if(b.dataset.action==='dl-pdf'&&r.pdfBlob)downloadBlob(r.pdfBlob,r.pdfName||'application.pdf');
+if(b.dataset.action==='photo'||b.dataset.action==='sign'){const k=b.dataset.action,bl=k==='photo'?r.photoBlob:r.signBlob;if(bl){const url=URL.createObjectURL(bl),nm=(r.name||'customer')+'-'+k+'.jpg';dlg(k==='photo'?'Photo':'Signature','<img src="'+url+'" alt="" style="max-width:100%;border:1px solid #d9e2ef;border-radius:8px;background:#fff;display:block;margin:auto">',[['Download','green',()=>downloadBlob(bl,nm)],['Close','secondary']]);setTimeout(()=>URL.revokeObjectURL(url),600000);}}
+if(b.dataset.action==='pdf'&&r.pdfBlob){const url=URL.createObjectURL(r.pdfBlob),nm=r.pdfName||'application.pdf';dlg('Application PDF','<p>'+esc(nm)+'</p>',[['Open','',()=>{window.open(url,'_blank');}],['Download','green',()=>downloadBlob(r.pdfBlob,nm)],['Close','secondary']]);setTimeout(()=>URL.revokeObjectURL(url),600000);}
+});
+$('exportCsv').addEventListener('click',async()=>{const r=await allRecords();const cols=['name','phone','email','aadhaar','pan','provider','status','applicationDate','notes','pdfName','photoName','signName'];const quote=v=>{let t=String(v??'');if(/^[=+\-@\t\r]/.test(t))t="'"+t;return '"'+t.replace(/"/g,'""')+'"';};const csv='\ufeff'+[cols.join(','),...r.map(x=>cols.map(c=>quote(x[c])).join(','))].join('\r\n');downloadBlob(new Blob([csv],{type:'text/csv;charset=utf-8'}),'sk-pan-data.csv');});
+function downloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}
+$('backupBtn').addEventListener('click',async()=>{try{const r=await allRecords(),out=[];for(const x of r){out.push({...x,pdfBlob:x.pdfBlob?await blobToDataURL(x.pdfBlob):null,photoBlob:x.photoBlob?await blobToDataURL(x.photoBlob):null,signBlob:x.signBlob?await blobToDataURL(x.signBlob):null});}downloadBlob(new Blob([JSON.stringify({app:'SK PAN CENTER',version:1,exportedAt:new Date().toISOString(),records:out})],{type:'application/json'}),'sk-pan-center-backup.json');$('backupMsg').textContent='Backup downloaded.';}catch(e){$('backupMsg').textContent='Backup failed: '+e.message;}});
+$('restoreFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const obj=JSON.parse(await f.text());if(!obj||!Array.isArray(obj.records))throw new Error('Invalid backup JSON');for(const x of obj.records){const rec={...x,pdfBlob:typeof x.pdfBlob==='string'?dataURLToBlob(x.pdfBlob):null,photoBlob:typeof x.photoBlob==='string'?dataURLToBlob(x.photoBlob):null,signBlob:typeof x.signBlob==='string'?dataURLToBlob(x.signBlob):null,id:x.id||newId(),updatedAt:new Date().toISOString()};await putRecord(rec);} $('backupMsg').textContent=`${obj.records.length} records restored.`;await renderRecords();await updateStats();}catch(err){$('backupMsg').textContent='Restore failed: '+err.message;}e.target.value='';});
+const SPECS={
+nsdl:{label:'NSDL (Protean)',photo:{w:197,h:276,dpi:300,kb:20},sign:{w:354,h:157,dpi:600,kb:10,bw:false},
+notice:'NSDL (Protean): photo 197 x 276 px (300 DPI) and signature 354 x 157 px (600 DPI), as listed in the PSA resize tools. Protean official limits: photo JPEG colour max 20 KB, 3.5 cm high x 2.5 cm wide; signature JPEG max 10 KB, 2 cm high x 4.5 cm wide. DPI is only a label inside the file, so you can change it below.',
+source:'Source: Protean PAN guidelines (tin.tin.proteantech.in), checked 17 Oct 2026. The 4.5 x 3.5 cm photo on the printed Form 93 is for a photograph pasted on the paper form, not for this upload.'},
+uti:{label:'UTIITSL (UTI)',photo:{w:213,h:213,dpi:300,kb:30},sign:{w:400,h:200,dpi:600,kb:60,bw:true},
+notice:'UTIITSL scanning specification: Photo 300 DPI, colour, 213 x 213 px, less than 30 KB, JPEG. Signature 600 DPI, black and white, 400 x 200 px, less than 60 KB, JPEG.',
+source:'Source: UTIITSL PAN scanning specification and PSA photo/signature resize tool.'}
+};
+let prov='nsdl';
+function setupCrop(prefix){const fileInput=$(prefix+'File'),canvas=$(prefix+'Canvas'),ctx=canvas.getContext('2d'),zoom=$(prefix+'Zoom'),sx=$(prefix+'X'),sy=$(prefix+'Y');let img=null,w=canvas.width,h=canvas.height,dwh=[w,h];
+function draw(){ctx.clearRect(0,0,w,h);ctx.fillStyle=img?'#ffffff':'#f1f5f9';ctx.fillRect(0,0,w,h);if(!img){ctx.fillStyle='#64748b';ctx.font='15px sans-serif';ctx.textAlign='center';ctx.fillText('Image preview',w/2,h/2);return;}const scale=Math.max(w/img.width,h/img.height)*Number(zoom.value);const dw=img.width*scale,dh=img.height*scale;dwh=[dw,dh];const x=-(dw-w)*Number(sx.value)/100,y=-(dh-h)*Number(sy.value)/100;ctx.save();ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();ctx.drawImage(img,x,y,dw,dh);ctx.restore();}
+function setSize(nw,nh){w=nw;h=nh;canvas.width=w;canvas.height=h;draw();}
+const info=$(prefix+'Info');
+fileInput.addEventListener('change',()=>{const f=fileInput.files&&fileInput.files[0];if(!f)return;info.className='muted';info.textContent='Loading image...';
+const fr=new FileReader();fr.onerror=()=>{info.className='error';info.textContent='Could not read this file. Please choose it again.';};
+fr.onload=()=>{const im=new Image();im.onload=()=>{img=im;zoom.value=1;sx.value=50;sy.value=50;draw();info.className='success';info.textContent='✔ Image uploaded: '+f.name+' ('+im.naturalWidth+' × '+im.naturalHeight+' px). Drag / zoom the preview, then press Download.';};
+im.onerror=()=>{info.className='error';info.textContent='This image could not be opened (HEIC or unsupported type?). Please choose a JPG or PNG image.';};im.src=fr.result;};
+fr.readAsDataURL(f);setTimeout(()=>{try{fileInput.value='';}catch(e){}},0);});
+[zoom,sx,sy].forEach(el=>el.addEventListener('input',draw));
+let drag=null;canvas.addEventListener('pointerdown',e=>{if(!img)return;drag={x:e.clientX,y:e.clientY,sx:Number(sx.value),sy:Number(sy.value)};canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';});
+canvas.addEventListener('pointermove',e=>{if(!drag)return;const r=canvas.getBoundingClientRect(),k=w/r.width,dx=(e.clientX-drag.x)*k,dy=(e.clientY-drag.y)*k,ddx=dwh[0]-w,ddy=dwh[1]-h;
+if(Math.abs(ddx)>1)sx.value=Math.max(0,Math.min(100,drag.sx-dx/ddx*100));if(Math.abs(ddy)>1)sy.value=Math.max(0,Math.min(100,drag.sy-dy/ddy*100));draw();});
+const endDrag=()=>{drag=null;canvas.style.cursor='grab';};canvas.addEventListener('pointerup',endDrag);canvas.addEventListener('pointercancel',endDrag);
+canvas.addEventListener('wheel',e=>{if(!img)return;e.preventDefault();zoom.value=Math.max(.2,Math.min(4,Number(zoom.value)*(e.deltaY<0?1.06:.94)));draw();},{passive:false});
+draw();
+function save(){return {img,zoom:zoom.value,x:sx.value,y:sy.value,ic:info.className,it:info.textContent};}
+function restore(st){img=st?st.img:null;zoom.value=st?st.zoom:1;sx.value=st?st.x:50;sy.value=st?st.y:50;info.className=st?st.ic:'muted';info.textContent=st?st.it:'No image chosen yet.';draw();}
+return {canvas,draw,setSize,save,restore,get image(){return img},get w(){return w},get h(){return h}};
+}
+const photoCrop=setupCrop('photo'),signCrop=setupCrop('sign');
+function setJpegDpi(buf,dpi){const b=new Uint8Array(buf),hi=dpi>>8,lo=dpi&255;
+if(b[0]===0xFF&&b[1]===0xD8&&b[2]===0xFF&&b[3]===0xE0&&b[6]===0x4A&&b[7]===0x46&&b[8]===0x49&&b[9]===0x46){b[13]=1;b[14]=hi;b[15]=lo;b[16]=hi;b[17]=lo;return b;}
+const seg=[0xFF,0xE0,0x00,0x10,0x4A,0x46,0x49,0x46,0x00,0x01,0x01,0x01,hi,lo,hi,lo,0x00,0x00];const out=new Uint8Array(b.length+seg.length);out.set(b.subarray(0,2),0);out.set(seg,2);out.set(b.subarray(2),2+seg.length);return out;}
+function readBuf(blob){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error||new Error('read failed'));r.readAsArrayBuffer(blob);});}
+function toBW(src){const c=document.createElement('canvas');c.width=src.width;c.height=src.height;const x=c.getContext('2d');x.drawImage(src,0,0);const d=x.getImageData(0,0,c.width,c.height),p=d.data,n=c.width*c.height,g=new Uint8Array(n),hist=new Array(256).fill(0);
+for(let i=0,j=0;j<n;i+=4,j++){const v=Math.round(.299*p[i]+.587*p[i+1]+.114*p[i+2]);g[j]=v;hist[v]++;}
+let sum=0;for(let t=0;t<256;t++)sum+=t*hist[t];let sB=0,wB=0,max=-1,th=128;
+for(let t=0;t<256;t++){wB+=hist[t];if(!wB)continue;const wF=n-wB;if(!wF)break;sB+=t*hist[t];const mB=sB/wB,mF=(sum-sB)/wF,v=wB*wF*(mB-mF)*(mB-mF);if(v>max){max=v;th=t;}}
+for(let i=0,j=0;j<n;i+=4,j++){const b=g[j]>th?255:0;p[i]=p[i+1]=p[i+2]=b;p[i+3]=255;}x.putImageData(d,0,0);return c;}
+async function showResult(outId,blob,filename){const el=$(outId);const url=await blobToDataURL(blob);
+el.innerHTML='';const img=document.createElement('img');img.src=url;img.alt='Cropped result';img.style.cssText='max-width:100%;border:1px solid #cbd5e1;border-radius:8px;margin-top:8px;background:#fff';el.appendChild(img);
+const row=document.createElement('div');row.className='actions';const a=document.createElement('a');a.className='btn green';a.href=url;a.download=filename;a.textContent='Download '+filename;row.appendChild(a);
+const file=new File([blob],filename,{type:'image/jpeg'});if(navigator.canShare&&navigator.canShare({files:[file]})){const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='Share / Save to phone';b.addEventListener('click',()=>navigator.share({files:[file]}).catch(()=>{}));row.appendChild(b);}
+el.appendChild(row);const note=document.createElement('p');note.className='muted';note.textContent='The image above is your final file. If the download button does not work, press and hold the image and choose Save image.';el.appendChild(note);}
+async function downloadCrop(crop,kbId,msgId,filename,spec){const msg=$(msgId),outId=msgId.replace('Msg','Out');msg.className='muted';
+try{if(!crop.image){msg.className='error';msg.textContent='Please choose an image first.';return;}
+msg.textContent='Working...';
+const entered=Number($(kbId).value)||spec.kb;const maxBytes=Math.floor(Math.min(entered,spec.kb)*1000);let quality=.95,blob=null;
+const src=spec.bw?toBW(crop.canvas):crop.canvas;
+for(let i=0;i<25;i++){blob=await new Promise(res=>src.toBlob(res,'image/jpeg',quality));if(!blob||blob.size<=maxBytes)break;quality*=.85;}
+if(!blob){msg.className='error';msg.textContent='Could not create the JPG in this browser. Open this page in Chrome and try again.';return;}
+blob=new Blob([setJpegDpi(await readBuf(blob),spec.dpi)],{type:'image/jpeg'});
+const ok=blob.size<=maxBytes;msg.className=ok?'success':'error';
+msg.textContent='Output: '+crop.w+' × '+crop.h+' px, '+spec.dpi+' DPI, '+(spec.bw?'black & white, ':'colour, ')+(blob.size/1024).toFixed(1)+' KB. '+(ok?'File ready.':'Note: file is larger than the limit; zoom in on the subject or use a simpler image and try again.');
+await showResult(outId,blob,filename);try{downloadBlob(blob,filename);}catch(e){}
+}catch(err){msg.className='error';msg.textContent='Crop failed: '+(err&&err.message?err.message:err);}}
+const store={};let provInit=false;
+function saveState(p){const g=id=>({c:$(id+'Msg').className,t:$(id+'Msg').textContent,o:$(id+'Out').innerHTML});
+store[p]={photo:photoCrop.save(),sign:signCrop.save(),pm:g('photo'),sm:g('sign'),f:{photoKB:$('photoKB').value,signKB:$('signKB').value,photoDPI:$('photoDPI').value,signDPI:$('signDPI').value,signBW:$('signBW').checked}};}
+function applyProvider(p){if(provInit&&p===prov)return;if(provInit)saveState(prov);provInit=true;prov=p;const s=SPECS[p],st=store[p];
+document.querySelectorAll('[data-prov]').forEach(b=>b.classList.toggle('secondary',b.dataset.prov!==p));
+photoCrop.setSize(s.photo.w,s.photo.h);signCrop.setSize(s.sign.w,s.sign.h);
+photoCrop.restore(st?st.photo:null);signCrop.restore(st?st.sign:null);
+const f=st?st.f:{photoKB:s.photo.kb,signKB:s.sign.kb,photoDPI:s.photo.dpi,signDPI:s.sign.dpi,signBW:!!s.sign.bw};
+$('photoKB').max=s.photo.kb;$('signKB').max=s.sign.kb;$('photoKB').value=f.photoKB;$('signKB').value=f.signKB;$('photoDPI').value=f.photoDPI;$('signDPI').value=f.signDPI;$('signBW').checked=f.signBW;
+$('specNotice').textContent=s.notice;$('specSource').textContent=s.source+' Always check the portal before uploading.';
+$('photoSpec').textContent=`${s.label}: ${s.photo.w} × ${s.photo.h} px, ${s.photo.dpi} DPI, colour, JPG, max ${s.photo.kb} KB`;
+$('signSpec').textContent=`${s.label}: ${s.sign.w} × ${s.sign.h} px, ${s.sign.dpi} DPI, ${s.sign.bw?'black & white':'colour'}, JPG, max ${s.sign.kb} KB`;
+const put=(id,m)=>{$(id+'Msg').className=m?m.c:'muted';$(id+'Msg').textContent=m?m.t:'';$(id+'Out').innerHTML=m?m.o:'';};
+put('photo',st&&st.pm);put('sign',st&&st.sm);}
+document.querySelectorAll('[data-prov]').forEach(b=>b.addEventListener('click',()=>applyProvider(b.dataset.prov)));
+$('downloadPhoto').addEventListener('click',()=>downloadCrop(photoCrop,'photoKB','photoMsg','pan-photo-'+prov+'.jpg',{...SPECS[prov].photo,dpi:Number($('photoDPI').value)||SPECS[prov].photo.dpi,bw:false}));
+$('downloadSign').addEventListener('click',()=>downloadCrop(signCrop,'signKB','signMsg','pan-signature-'+prov+'.jpg',{...SPECS[prov].sign,dpi:Number($('signDPI').value)||SPECS[prov].sign.dpi,bw:$('signBW').checked}));
+applyProvider('nsdl');
+(async()=>{try{await Promise.race([openDB(),new Promise((_,rej)=>setTimeout(()=>rej(new Error('storage timeout')),4000))]);}catch(e){useMem=true;loadMem();const w=$('storageWarn');w.textContent='⚠ Full browser storage is blocked here (file opened inside WhatsApp, Gmail, a file previewer or a private tab). Only TEXT details will be kept; photos, signatures and PDFs will be LOST. To keep everything, open this file directly in Chrome (from Downloads, not private mode).';w.classList.remove('hidden');setBanner('⚠ App is running, but storage is limited (see warning below).',false);}
+if(!useMem)setBanner('✔ App is ready. Data will be saved permanently in this browser.',true);
+try{resetForm();await updateStats();}catch(e){}})();
+</script>
+</body></html>
